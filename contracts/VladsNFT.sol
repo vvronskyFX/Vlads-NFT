@@ -17,20 +17,27 @@ contract VladsNFT is ERC721URIStorage {
 	using Counters for Counters.Counter;
 	Counters.Counter private _tokenIds;
 
+  mapping(address => uint256) private _mintPerAddress;
+  uint256 public MAX_PER_ADDRESS = 2;
+  uint256 public MAX_MINT = 50;
+  uint256 public publicIssued = 0;
+
 	string svgPartOne = "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMinYMin meet' viewBox='0 0 350 350'><style>.base { fill: white; font-family: serif; font-size: 24px; }</style><rect width='100%' height='100%' fill='";
 
   string svgPartTwo = "'/><text x='50%' y='50%' class='base' dominant-baseline='middle' text-anchor='middle'>";
 
-    string[] firstWords = ["Jupiter", "Pluto", "Uranus", "Earth", "Saturn", "Venus", "Mercury", "Mars", "Neptune"];
-    string[] secondWords = ["Galaxy", "Space", "Universe", "Exoplanet", "Metagalaxy", "Interstellar", "Constellation", "Nebula", "Void"];
-    string[] thirdWords = ["Sword", "Blast", "Smoke", "Vibes", "Annihilation", "Growth", "Adventure", "Exploration", "Travel"];
+  string[] firstWords = ["Jupiter", "Pluto", "Uranus", "Earth", "Saturn", "Venus", "Mercury", "Mars", "Neptune"];
+  string[] secondWords = ["Galaxy", "Space", "Universe", "Exoplanet", "Metagalaxy", "Interstellar", "Constellation", "Nebula", "Void"];
+  string[] thirdWords = ["Sword", "Blast", "Smoke", "Vibes", "Annihilation", "Growth", "Adventure", "Exploration", "Travel"];
 
-      // Get fancy with it! Declare a bunch of colors.
-    string[] colors = ["red", "#08C2A8", "black", "yellow", "blue", "green", "#3C43B0", "#C48BEA", "#38A54A"];
+  // Get fancy with it! Declare a bunch of colors.
+  string[] colors = ["red", "#08C2A8", "black", "yellow", "blue", "green", "#3C43B0", "#C48BEA", "#38A54A"];
 
   event NewEpicNFTMinted(address sender, uint256 tokenId);
 
 	constructor() ERC721("GalaxyNFT", "SPACE") {
+    // start at 1
+    _tokenIds.increment();    
 		console.log("This is my space inspired NFT Contract. Sick!");
 	}
 
@@ -67,9 +74,14 @@ contract VladsNFT is ERC721URIStorage {
 
     // A function our user will hit to get their NFT.
 	function makeAnEpicNFT() public {
-
-	  // Get the current NFT Id, this starts at 0.
-	  uint256 newItemId = _tokenIds.current();
+    require(
+            _mintPerAddress[msg.sender] < MAX_PER_ADDRESS,
+            "You have reached your minting limit."
+            );
+    // Setting a require statement that shares we only have 50 Minted NFTS.
+    require(publicIssued < MAX_MINT, "There are no more NFTs for minting.");
+    // Get the current NFT Id, this starts at 0.
+    uint256 newItemId = _tokenIds.current();
 
 	  // We go and randomly grab one word from each of the three arrays.
    	  string memory first = pickRandomFirstWord(newItemId);
@@ -105,6 +117,9 @@ contract VladsNFT is ERC721URIStorage {
       console.log("\n--------------------");
       console.log(finalTokenUri);
       console.log("--------------------\n");
+
+    _mintPerAddress[msg.sender] += 1;
+    publicIssued += 1;  
 
 	  // Actually mint the NFT to the sender using msg.sender
 	  // msg.sender is to WHO the NFT is minted for and sent to.
